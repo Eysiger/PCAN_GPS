@@ -9,6 +9,7 @@
 
 #include "Arduino.h"
 #include "FlexCAN.h"
+#include <vector>
 
 /*=========================================================================
     CAN IDs
@@ -80,9 +81,9 @@ class PCAN_GPS
 {
   public:
     PCAN_GPS();
-    PCAN_GPS(int8_t enablePin);
-    PCAN_GPS(int8_t enablePin, int8_t bus);
-    PCAN_GPS(int8_t enablePin, int8_t bus, int8_t txAlt, int8_t rxAlt);
+    PCAN_GPS(int8_t speedPin, bool highSpeedMode);
+    PCAN_GPS(int8_t speedPin, bool highSpeedMode, int8_t bus);
+    PCAN_GPS(int8_t speedPin, bool highSpeedMode, int8_t bus, int8_t txAlt, int8_t rxAlt);
 
     bool begin(uint32_t baud = 500000);
 
@@ -103,12 +104,12 @@ class PCAN_GPS
     void getRot(float &rotX, float &rotY, float &rotZ)
     {	rotX = canClass._rotX; rotY = canClass._rotY; rotZ = canClass._rotZ;	}
 
-    int gpsAntennaStatus()								// 0 = INIT, 1 = Dont Know, 2 = OK, 3 = Short, 4 = Open
-    {	return canClass._antennaStatus;	}
-    int gpsNumSatelits()
-    {	return canClass._numSatelits;	}
-    int gpsNavMethod()									// 0 = INIT, 1 = None, 2 = 2D, 3 = 3D
-    {	return canClass._navMethod;	}
+    void gpsAntennaStatus(int &antStatus)								// 0 = INIT, 1 = Dont Know, 2 = OK, 3 = Short, 4 = Open
+    {	antStatus = canClass._antennaStatus;	}
+    void gpsNumSatelits(int &num)
+    {	num = canClass._numSatelits;	}
+    void gpsNavMethod(int &method)									// 0 = INIT, 1 = None, 2 = 2D, 3 = 3D
+    {	method = canClass._navMethod;	}
 
     void gpsCourse(float &course)
     {	course = canClass._course;	}
@@ -225,7 +226,8 @@ class PCAN_GPS
 
  	CanClass canClass;
 
-	int8_t _enable;
+	int8_t _speedPin;
+    bool _highSpeedMode;
 	int8_t _bus;
 	uint8_t _txAlt;
 	uint8_t _rxAlt;
@@ -235,7 +237,7 @@ float int32ToFloat(int32_t int32Number);
 int32_t first4ByteToInt32(CAN_message_t &frame);
 int32_t last4ByteToInt32(CAN_message_t &frame);
 
-float median(float array[]);
-float mean(float array[]);
+float median(std::vector< float > vector);
+float mean(std::vector< float > vector);
 
 #endif
