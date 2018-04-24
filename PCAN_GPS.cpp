@@ -15,19 +15,19 @@
 
 
 PCAN_GPS::PCAN_GPS()
-  : _enable(-1), _bus(0), _txAlt(0), _rxAlt(0)
+  : _speedPin(-1), _highSpeedMode(0), _bus(0), _txAlt(0), _rxAlt(0)
 { }
 
-PCAN_GPS::PCAN_GPS(int8_t enablePin)
-  : _enable(enablePin),_bus(0), _txAlt(0), _rxAlt(0)
+PCAN_GPS::PCAN_GPS(int8_t speedPin, bool highSpeedMode)
+  : _speedPin(speedPin), _highSpeedMode(highSpeedMode), _bus(0), _txAlt(0), _rxAlt(0)
 { }
 
-PCAN_GPS::PCAN_GPS(int8_t enablePin, int8_t bus)
-  : _enable(enablePin), _bus(bus),_txAlt(0), _rxAlt(0)
+PCAN_GPS::PCAN_GPS(int8_t speedPin, bool highSpeedMode, int8_t bus)
+  : _speedPin(speedPin), _highSpeedMode(highSpeedMode), _bus(bus),_txAlt(0), _rxAlt(0)
 { }
 
-PCAN_GPS::PCAN_GPS(int8_t enablePin, int8_t bus, int8_t txAlt, int8_t rxAlt)
-  : _enable(enablePin), _bus(bus), _txAlt(txAlt), _rxAlt(rxAlt)
+PCAN_GPS::PCAN_GPS(int8_t speedPin, bool highSpeedMode, int8_t bus, int8_t txAlt, int8_t rxAlt)
+  : _speedPin(speedPin), _highSpeedMode(highSpeedMode), _bus(bus), _txAlt(txAlt), _rxAlt(rxAlt)
 { }
 
 
@@ -44,9 +44,12 @@ bool PCAN_GPS::begin(uint32_t baud) {
   }
   else { return false; }
 
-  if (_enable) {
-    pinMode(_enable, OUTPUT);
-    digitalWrite(_enable, HIGH);
+  pinMode(_speedPin, OUTPUT);
+  if (_highSpeedMode) { 
+    digitalWrite(_speedPin, LOW);		// High speed mode
+  }
+  else {
+  	digitalWrite(_speedPin, HIGH);		// Low power mode
   }
 
   if (_bus == 0)
@@ -317,12 +320,12 @@ int32_t last4ByteToInt32(CAN_message_t &frame)
   return (frame.buf[7] << 24) | (frame.buf[6] << 16) | (frame.buf[5] << 8) | frame.buf[4];
 }
 
-float median(float array[]) {
+float median(std::vector< float > vector) {
     // Allocate an array of the same size and sort it.
-    int size = sizeof(array);
+    int size = vector.size();
     float* sorted = new float[size];
     for (int j = 0; j < size; ++j) {
-        sorted[j] = array[j];
+        sorted[j] = vector[j];
     }
     for (int j = size - 1; j > 0; --j) {
         for (int k = 0; k < j; ++k) {
@@ -345,11 +348,11 @@ float median(float array[]) {
     return median;
 }
 
-float mean(float array[]) {
-    int size = sizeof(array);
+float mean(std::vector< float > vector) {
+    int size = vector.size();
     float sum = 0.0;
     for (int j = 0; j < size; ++j) {
-        sum += array[j];
+        sum += vector[j];
     }
     return sum/((float)size);
 }
